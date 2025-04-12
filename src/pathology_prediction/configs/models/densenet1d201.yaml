@@ -1,0 +1,11 @@
+model_name: "densenet1d201"
+config:
+  _target_: ecglib.models.config.model_configs.DenseNetConfig
+  growth_rate: 32
+  block_config: [6, 12, 48, 32]
+  num_init_features: 64
+  bottleneck_size: 4
+  kernel_size: 3
+  input_channels: 12
+  num_classes: 1
+  reinit: True
