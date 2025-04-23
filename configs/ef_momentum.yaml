@@ -1,0 +1,10 @@
+_target_: federated_methods.ef_momentum.ef_momentum.EFMomentum
+theta : 0.2
+gamma : 1
+k : 5
+trust_sample_amount: 50
+momentum_beta: 0.1
+trusted_prop: 0.1
+
+
+#  CUDA_VISIBLE_DIVECES=0 nohup python train.py base_dir=home models@models_dict.model1=resnet18 federated_method=ef_momentum observed_data_params@dataset=cifar10 observed_data_params@trust_df=cifar10_trust observed_data_params@filter=filter_dataframe_files observed_data_params@server_test=cifar10 losses@loss=ce federated_params.amount_of_clients=10 training_params.batch_size=16 training_params.device_ids=[0] federated_method.trust_sample_amount=1500 federated_params.print_client_metrics=False > outputs/ef_momentum_10.txt &
