@@ -13,11 +13,11 @@ now we have four strategies for compressing:
 
 In the nearest time we add some new methods: 
 | method |description |
-|:----------|:--------|:----------|
+|:----------|:--------|
 |top-k via method1 + top-t via method2|We choose k clients on each epoch via method1 and choose t clients via method2|
 |top-k via angles of gradients|we get gradients from clients, choosing k clients with the least deviation from the mean |
 
 Method launch command
-`CUDA_VISIBLE_DIVECES=1 taskset -c 1-34 nice -n 2  nohup python train.py base_dir=home models@models_dict.model1=resnet18 federated_method=ef_full observed_data_params@dataset=cifar10 observed_data_params@trust_df=cifar10_trust observed_data_params@filter=filter_dataframe_files observed_data_params@server_test=cifar10 losses@loss=ce federated_params.round_epochs=1 federated_params.amount_of_clients=10 training_params.batch_size=16 training_params.device_ids=[1] federated_method.trust_sample_amount=1500 federated_params.print_client_metrics=False > outputs/efgrad_3of10_patol_3its_0.2theta.txt &
-`
+```CUDA_VISIBLE_DIVECES=1 taskset -c 1-34 nice -n 2  nohup python train.py base_dir=home models@models_dict.model1=resnet18 federated_method=ef_full observed_data_params@dataset=cifar10 observed_data_params@trust_df=cifar10_trust observed_data_params@filter=filter_dataframe_files observed_data_params@server_test=cifar10 losses@loss=ce federated_params.round_epochs=1 federated_params.amount_of_clients=10 training_params.batch_size=16 training_params.device_ids=[1] federated_method.trust_sample_amount=1500 federated_params.print_client_metrics=False > outputs/efgrad_3of10_patol_3its_0.2theta.txt &
+```
 ef_full.yaml must be supplemented with parameters and methods.
