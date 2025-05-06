@@ -1,6 +1,0 @@
-_target_: federated_methods.efb.efb.EFBFedavg
-theta : 0.05
-gamma : 0.1
-fpath : r'/home/aletovv/federated_research/refactored/outputs/test_efb_full_clients 0.05;1.txt'
-
-# CUDA_VISIBLE_DIVECES=1 nohup python train.py base_dir=home models@models_dict.model1=resnet18 federated_method=efb training_params.epochs=10 observed_data_params@dataset=cifar10 observed_data_params@filter=filter_dataframe_files observed_data_params@server_test=cifar10 losses@loss=ce federated_params.amount_of_clients=10 training_params.batch_size=32 training_params.device_ids=[1] federated_params.print_client_metrics=False > outputs/test_run_efb_cifar.txt &

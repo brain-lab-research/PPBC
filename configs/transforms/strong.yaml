@@ -1,0 +1,48 @@
+order:
+  [
+    "RandomResizedCrop",
+    "HorizontalFlip",
+    "ColorJitter",
+    # "ToGray",
+    "GaussianBlur",
+    "Normalize",
+    "ToTensor"
+  ]
+
+RandomResizedCrop:
+  _target_: albumentations.RandomResizedCrop
+  height: 96
+  width: 96
+  # scale: [0.6, 1.0] # ChatGPT, wasn't here
+  p: 1
+
+HorizontalFlip:
+  _target_: albumentations.HorizontalFlip
+  p: 0.5
+
+ColorJitter:
+  _target_: utils.augmentations.ColorJitter
+  # s: 0.5 # ChatGPT, was 1
+  s: 1
+  p: 0.8
+
+# ToGray:
+#   _target_: utils.augmentations.ToGray
+#   p: 0.2
+
+GaussianBlur:
+  _target_: albumentations.GaussianBlur
+  # blur_limit: [5, 5] # ChatGPT, was [51, 51]
+  blur_limit: [51, 51]
+  sigma_limit: [0.1, 2.0]
+  p: 0.5
+
+Normalize:
+  _target_: albumentations.Normalize
+  mean: [0.4914, 0.4822, 0.4465]
+  std:  [0.2023, 0.1994, 0.2010]
+  max_pixel_value: 1
+
+ToTensor:
+  _target_: albumentations.pytorch.ToTensorV2
+  

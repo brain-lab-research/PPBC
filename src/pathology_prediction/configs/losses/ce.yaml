@@ -1,8 +1,0 @@
-loss_name: "ce"
-config:
-  _target_: torch.nn.CrossEntropyLoss
-  size_average: True
-  ignore_index: -100
-  reduce: True
-  reduction: 'mean'
-  label_smoothing: 0.0

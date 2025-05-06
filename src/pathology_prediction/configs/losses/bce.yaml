@@ -1,7 +1,0 @@
-loss_name: "bce"
-config:
-  _target_: torch.nn.BCEWithLogitsLoss
-  size_average: True
-  reduce: True
-  reduction: 'mean'
-  pos_weight: null

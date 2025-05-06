@@ -60,7 +60,7 @@ training_params:
     early_stopping_patience: 10
     scheduler_patience: 3
     device: "cuda"
-    device_ids: [0]
+    device_ids: ['0']
     prediction_threshold: 0.5
     metrics_threshold: "gmean"
     factor: 0.8

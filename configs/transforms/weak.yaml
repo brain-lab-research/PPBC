@@ -1,0 +1,22 @@
+
+order:
+  [
+    # "Resize",
+    "Normalize",
+    "ToTensor"
+  ]
+
+Resize:
+  _target_: albumentations.Resize
+  height: 32
+  width: 32
+  p: 1
+
+Normalize:
+  _target_: albumentations.Normalize
+  mean: [0.4914, 0.4822, 0.4465]
+  std:  [0.2023, 0.1994, 0.2010]
+  max_pixel_value: 1
+
+ToTensor:
+  _target_: albumentations.pytorch.ToTensorV2
