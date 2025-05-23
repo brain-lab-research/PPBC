@@ -1,7 +1,7 @@
-# EF25_NIPS  
+# PPBC_NIPS  
 **Experimental Setup for the Paper**
 
-This repository includes all experiments and implementations required for the EF25_NIPS study.
+This repository includes all experiments and implementations required for the PPBC_NIPS study.
 
 ---
 
