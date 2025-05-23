@@ -1,11 +1,10 @@
 defaults:
     - models@models_dict.model1: resnet1d18
-    - observed_data_params@dataset: tis
-    - observed_data_params@server_test: ptbxl
-    - observed_data_params@filter: filter_dataframe_files
-    - observed_data_params@trust_df: ptbxl
+    - observed_data_params@dataset: cifar10
+    - observed_data_params@server_test: cifar10
+    - observed_data_params@trust_df: cifar10_trust
     - federated_method: fedavg
-    - losses@loss: bce
+    - losses@loss: ce
     - manager: sequential
     - optimizer: adam
     - _self_
@@ -14,43 +13,6 @@ models: ${oc.dict.values:models_dict}
 models_combination: single
 random_state: 42
 single_run_dir: ${hydra:run.dir}
-base_dir: space # home
-
-task_params:
-    # Type of the code the model should predict
-    task_type: "scp_codes"
-    # Validated by human flag
-    validated_by_human: False
-    # All pathology codes that will be used during training or validation
-    pathology_names: ["AFIB"]
-    # Dictionary of labels used for training or validation. Values are labels from pathology_names
-    merge_map: {}
-    classes: 1
-
-patient_params:
-    # Possible age of the patients used during training or validation
-    age_range: [18, 100]
-
-ecg_record_params:
-    data_type: "npz"
-    # Only ECG records with frequencies presented in observed_frequencies will be used for training or validation
-    observed_frequencies: [500, 1000]
-    resampled_frequency: 500
-    # Number of seconds cut from ECG in the beginning and in the end of the record
-    ecg_cut_range: [0, 0]
-    leads: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-    ecg_length: [9, 10]
-    observed_ecg_length: 10
-    normalization: "z_norm"
-    augmentation:
-        transforms: null
-
-ecg_metadata:
-    # Metadata flag
-    use_metadata: False
-    # List of metadata used for training 
-    ecg_meta_subset: []
-    patient_meta_subset: ["age", "sex"]
 
 training_params:
     epochs: 200
@@ -78,10 +40,3 @@ federated_params:
     print_client_metrics: True
     server_saving_metrics: ["loss"] # "loss", "Specificity", "Sensitivity", "G-mean", "f1-score", "fbeta2-score", "ROC-AUC", "AP", "Precision (PPV)", "NPV"
     server_saving_agg: "uniform" # weighted
-    clients_attack_types: "no_attack" # label_flip, sign_flip, random_grad; Can be mixed with a list ['label_flip', 'sign_flip']
-    prop_attack_clients: 0.0 # Must be in accordance with `clients_attack_types`.
-    attack_scheme: "no_attack" # constant, random_rounds, random_clients, random_rounds_random_clients
-    prop_attack_rounds: 0.0
-
-
-# CUDA_VISIBLE_DIVECES=2 nohup python train.py base_dir=home models@models_dict.model1=resnet18 observed_data_params@dataset=cifar10_mipt observed_data_params@filter=filter_dataframe_files observed_data_params@server_test=cifar10_mipt losses@loss=ce federated_params.amount_of_clients=2 training_params.batch_size=32 training_params.device_ids=[1] federated_params.print_client_metrics=False > /home/aletovv/federated_research/outputs/test.txt  &

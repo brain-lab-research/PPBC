@@ -1,5 +1,0 @@
-loss_name: "ntxent"
-config:
-  _target_: utils.losses.NTXentLoss
-  temperature: 0.2
-  use_cosine_similarity: True

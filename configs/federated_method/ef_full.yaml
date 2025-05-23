@@ -1,16 +1,18 @@
-_target_: federated_methods.ef_full.ef_full.EF25
+_target_: federated_methods.ppbc.ppbc.PPBC
 
-theta: 0
+theta: 0.2
 gamma: 1
-distribution: [5153, 3556, 5793, 5506, 4138, 7089, 4679, 2599, 5068, 4419] # [4800, 4800, 4800, 4800, 4800, 4800, 4800, 4800, 4800, 4800]
+distribution: ???
 
-epoch_method: 'loss'
-k: 1
-iterations: 1
-need_errors: False
+epoch_method: 'gradient_angles'
+epoch_k: 3
+
+iter_method: 'loss'
+iter_k: 1
+
+iterations: 3
+need_errors: True
 
 beta : 0.1
-trust_sample_amount: 50
-
-
-# CUDA_VISIBLE_DIVECES=1 taskset -c 1-34 nice -n 2  nohup python train.py base_dir=home models@models_dict.model1=resnet18 federated_method=ef_full observed_data_params@dataset=cifar10 observed_data_params@trust_df=cifar10_trust observed_data_params@filter=filter_dataframe_files observed_data_params@server_test=cifar10 losses@loss=ce federated_params.round_epochs=1 federated_params.amount_of_clients=10 training_params.batch_size=16 training_params.device_ids=[1] federated_method.trust_sample_amount=1500 federated_params.print_client_metrics=False > outputs/efgrad_3of10_patol_3its_0.2theta.txt &
+trust_sample_amount: 500
+prob_d: 0.1

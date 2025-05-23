@@ -15,11 +15,9 @@ from utils.metrics_utils import (
     check_metrics_names,
 )
 
-
 class Server:
     def __init__(self, cfg):
         self.cfg = cfg
-        self.global_model = get_model(cfg)
         self.client_gradients = [
             OrderedDict() for _ in range(cfg.federated_params.amount_of_clients)
         ]
@@ -30,13 +28,6 @@ class Server:
         self.test_loader = get_dataset_loader(
             self.test_df, cfg, drop_last=False, mode="test"
         )
-        if "ecg_data" in self.cfg.dataset.data_sources.train_directories[0]:
-            self.trust_df = read_dataframe_from_cfg(
-                cfg, "train_directories", "trust_df"
-            )
-            self.trust_loader = get_dataset_loader(
-                self.trust_df, cfg, drop_last=False, mode="trust"
-            )
         self.device = (
             "{}:{}".format(
                 cfg.training_params.device, cfg.training_params.device_ids[0]
@@ -62,6 +53,7 @@ class Server:
     def eval_fn(self, dataset):
         self.global_model.to(self.device)
         self.global_model.eval()
+        
         self.criterion = get_loss(
             loss_cfg=self.cfg.loss,
             device=self.device,
@@ -77,22 +69,26 @@ class Server:
                 _, (input, targets) = batch
 
                 inp = input[0].to(self.device)
+                
                 targets = targets.to(self.device)
                 outputs = self.global_model(inp)
+                
                 loss += self.criterion(outputs, targets)
+                
                 fin_targets.extend(targets.tolist())
                 fin_outputs.extend(outputs.tolist())
+        
         loss /= len(getattr(self, f"{dataset}_loader"))
         setattr(self, f"{dataset}_loss", loss)
+        
         return fin_targets, fin_outputs
 
     def test_global_model(self, dataset="test", require_metrics=True):
-        require_metrics = (
-            "ecg_data" not in self.cfg.dataset.data_sources.train_directories[0]
-        ) or require_metrics
         fin_targets, fin_outputs = self.eval_fn(dataset)
+        
         if require_metrics:
             print(f"\nServer {dataset.capitalize()} Results:")
+
             metrics, threshold = calculate_metrics(
                 fin_targets,
                 fin_outputs,
@@ -104,9 +100,10 @@ class Server:
                 ),
                 verbose=True,
             )
+            
             setattr(self, f"last_{dataset}_metrics", (metrics, threshold))
+            
         print(f"Server {dataset.capitalize()} Loss: {getattr(self, dataset+'_loss')}")
-        print(metrics, threshold, 'check what it is')
 
     def set_client_result(self, client_result):
         # Put client information in accordance with his rank
@@ -117,15 +114,20 @@ class Server:
         # Collect metrics from clients
         # server_metrics = (metrics, val_loss, len(val_df))
         server_metrics = [metrics[0] for metrics in self.server_metrics]
+        
         val_losses = [metrics[1] for metrics in self.server_metrics]
+        
         val_len_dfs = [metrics[2] for metrics in self.server_metrics]
+        
         weights = [val_len_df / sum(val_len_dfs) for val_len_df in val_len_dfs]
+        
         metrics_names = server_metrics[0].index
 
         if self.metric_aggregation == "uniform":
             # Uniform metrics agregation
             val_loss = np.mean(val_losses)
             metrics = pd.concat(server_metrics).groupby(level=0).mean()
+            
         if self.metric_aggregation == "weighted":
             # Weighted metrics aggregation
             val_loss = np.sum(
@@ -134,6 +136,7 @@ class Server:
             metrics = sum(
                 weight * metric for weight, metric in zip(weights, server_metrics)
             )
+            
         metrics = metrics.reindex(metrics_names)
         print(f"\nServer Valid Results:\n{metrics}")
         print(f"Server Valid Loss: {val_loss}")
@@ -143,15 +146,16 @@ class Server:
         )
         if epochs_no_improve == 0 and val_loss is not np.nan:
             print("\nServer model saved!")
-            if "ecg_data" in self.cfg.dataset.data_sources.train_directories[0]:
-                self.test_global_model(dataset="trust", require_metrics=True)
-                self.test_global_model(require_metrics=True)
+            
             prev_model_path = f"{self.model_path}_round_{self.best_round}.pt"
             if os.path.exists(prev_model_path):
                 os.remove(prev_model_path)
+                
             self.best_metrics = best_metrics
             self.best_round = round
+            
             checkpoint_path = f"{self.model_path}_round_{self.best_round}.pt"
+            
             model_info = create_model_info(
                 model_state=self.global_model.state_dict(),
                 metrics=self.last_test_metrics,
@@ -169,14 +173,8 @@ class Server:
         return metrics
 
     def create_model_path(self):
-        if "ecg_data" in self.cfg.dataset.data_sources.train_directories[0]:
-            self.target_label_names = (
-                list(self.cfg.task_params.merge_map.keys())
-                if self.cfg.task_params.merge_map
-                else self.cfg.task_params.pathology_names
-            )
-        else:
-            self.target_label_names = [self.cfg.dataset.data_name]
+        
+        self.target_label_names = [self.cfg.dataset.data_name]
 
         return f"{self.cfg.single_run_dir}/{type(instantiate(self.cfg.federated_method, _recursive_=False)).__name__}_{'_'.join(self.target_label_names)}"
 
@@ -194,5 +192,5 @@ class Server:
         # Send shutdown message
         self.pipes[rank].send({"shutdown": None})
 
-    def reinit_client(self, rank, new_rank, client_cls, pipe, attack_type):
-        self.pipes[rank].send({"reinit": [new_rank, client_cls, pipe, attack_type]})
+    def reinit_client(self, rank, new_rank, client_cls, pipe):
+        self.pipes[rank].send({"reinit": [new_rank, client_cls, pipe]})
