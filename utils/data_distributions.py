@@ -6,7 +6,12 @@ RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 
 
-def set_uniform_split(df, target_dir, name, amount_of_clients=10, ):
+def set_uniform_split(
+    df,
+    target_dir,
+    name,
+    amount_of_clients=10,
+):
     target_sizes = np.unique(df["target"], return_counts=True)[1]
     clients = []
 

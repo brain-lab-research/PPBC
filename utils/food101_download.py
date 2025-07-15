@@ -95,7 +95,6 @@ def split_train_and_trust(df, trust_data_size, target_dir):
 
 
 def train_test_trust_splits(target_dir, num_workers, trust_data_size):
-
     _ = get_data(target_dir=target_dir, mode="test", num_workers=num_workers)
     df = get_data(target_dir=target_dir, mode="train", num_workers=num_workers)
     print(f"Downloading is done!")
@@ -109,11 +108,18 @@ def train_test_trust_splits(target_dir, num_workers, trust_data_size):
 def prepare_splits(df, target_dir):
     print("Preparing splits for different distributions")
 
-    set_uniform_split(df=df, target_dir=target_dir, amount_of_clients=10, name='food101')
+    set_uniform_split(
+        df=df, target_dir=target_dir, amount_of_clients=10, name="food101"
+    )
     print("Uniform split is done")
 
     set_pathology_split(
-        df=df, std=0.1, target_dir=target_dir, amount_of_clients=10, random_state=42, name='food101'
+        df=df,
+        std=0.1,
+        target_dir=target_dir,
+        amount_of_clients=10,
+        random_state=42,
+        name="food101",
     )
     print("Pathology split is done")
 
@@ -124,7 +130,7 @@ def prepare_splits(df, target_dir):
         head_classes=30,
         head_clients=4,
         random_state=42,
-        name='food101',
+        name="food101",
     )
     print("Hetero split is done")
 
@@ -159,11 +165,11 @@ def set_data_configs(target_dir):
             data = yaml.safe_load(f)
 
         data_sources = data.get("data_sources", {})
-        distr_info = data.get('distribution_info', {})
-        
+        distr_info = data.get("distribution_info", {})
+
         if "test_directories" in data_sources:
             test_map_path = target_dir / "image_data" / "food101_test_map_file.csv"
-            data_sources["test_directories"] = str(test_map_path)
+            data_sources["test_directories"] = [str(test_map_path)]
 
         if "train_directories" in data_sources:
             if filename.name in ["food101.yaml"]:
@@ -174,16 +180,15 @@ def set_data_configs(target_dir):
                 train_map_name = "food101_trust_map_file.csv"
             else:
                 train_map_name = "food101_pathology_map_file.csv"
-                distribution = 'pathology_additional_info.npy'
+                distribution = "pathology_additional_info.npy"
                 distr_map_file = target_dir / "image_data" / distribution
                 distr_info = distr_map_file
-                data['distribution_info'] = str(distr_info)
+                data["distribution_info"] = [str(distr_info)]
 
             if train_map_name is not None:
                 train_map_path = target_dir / "image_data" / train_map_name
-                data_sources["train_directories"] = str(train_map_path)
+                data_sources["train_directories"] = [str(train_map_path)]
         data["data_sources"] = data_sources
-        
 
         with open(filepath, "w") as f:
             yaml.dump(data, f, default_flow_style=False)

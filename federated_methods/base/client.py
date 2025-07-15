@@ -38,10 +38,10 @@ class Client:
         self.metrics_threshold = cfg.training_params.metrics_threshold
         self.print_metrics = cfg.federated_params.print_client_metrics
         self.train_val_prop = cfg.federated_params.client_train_val_prop
-        dev_idx = (self.rank+1) % len(self.cfg.training_params.device_ids) 
+        dev_idx = (self.rank + 1) % len(self.cfg.training_params.device_ids)
         self.device = (
             "{}:{}".format(
-                cfg.training_params.device, cfg.training_params.device_ids[dev_idx-1]
+                cfg.training_params.device, cfg.training_params.device_ids[dev_idx - 1]
             )
             if cfg.training_params.device == "cuda"
             else "cpu"
@@ -109,7 +109,6 @@ class Client:
     def train_fn(self):
         self.model.train()
         for _ in range(self.cfg.federated_params.round_epochs):
-
             for batch in self.train_loader:
                 _, (input, targets) = batch
 

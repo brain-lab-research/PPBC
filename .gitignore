@@ -2,3 +2,4 @@ cifar10/
 outputs/
 food101/
 *.out
+*.ipynb

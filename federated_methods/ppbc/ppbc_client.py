@@ -96,7 +96,6 @@ class ScaffoldClient(Client):
     def train_fn(self):
         self.model.train()
         for _ in range(self.cfg.federated_params.round_epochs):
-
             for batch in self.train_loader:
                 _, (input, targets) = batch
 

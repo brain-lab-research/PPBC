@@ -35,7 +35,7 @@ class Server:
             if cfg.training_params.device == "cuda"
             else "cpu"
         )
-        print(f'server has device {self.device}', flush=True)
+        print(f"server has device {self.device}", flush=True)
         self.model_path = self.create_model_path()
         self.best_metrics = {
             metric: 1000 * (metric == "loss")
@@ -171,7 +171,6 @@ class Server:
         return metrics
 
     def create_model_path(self):
-
         self.target_label_names = [self.cfg.dataset.data_name]
 
         return f"{self.cfg.single_run_dir}/{type(instantiate(self.cfg.federated_method, _recursive_=False)).__name__}_{'_'.join(self.target_label_names)}"

@@ -17,7 +17,6 @@ import copy
 
 class PPBC(FedAvg):
     def __init__(self, theta, gamma, **method_args):
-
         super().__init__()
 
         self.theta = theta
@@ -33,18 +32,20 @@ class PPBC(FedAvg):
         self.trust_sample_amount = method_args.get("trust_sample_amount", 50)
         self.momentum_beta = method_args.get("momentum_beta", 0.1)
         self.q_m = method_args.get("q_m", 1.0)
-        
-        self.method = method_args.get("method", 'ppbc')
-        if self.method != 'ppbc':
-            print(f'for {self.method} we do not need errors, so theta and need errors params are equals to 0.0 and False')
+
+        self.method = method_args.get("method", "ppbc")
+        if self.method != "ppbc":
+            print(
+                f"for {self.method} we do not need errors, so theta and need errors params are equals to 0.0 and False"
+            )
             self.theta = 0.0
             self.need_errors = False
-            
-        #Scaffold method
-        if self.method == 'scaffold':
+
+        # Scaffold method
+        if self.method == "scaffold":
             self.global_lr = method_args.get("global_lr", 1e-4)
             self.local_lr = method_args.get("local_lr", 1e-4)
-            
+
     def _init_federated(self, cfg, df):
         super()._init_federated(cfg, df)
 
@@ -54,12 +55,12 @@ class PPBC(FedAvg):
         self.final_errors = {
             f"client {i}": OrderedDict() for i in range(self.num_clients)
         }
-        
+
         if "pathology" in cfg.dataset.data_sources.train_directories[0]:
             self.distribution = np.load(self.cfg.dataset.distribution_info)
         else:
-            self.distribution = [len(self.df) // self.num_clients]* self.num_clients 
-            
+            self.distribution = [len(self.df) // self.num_clients] * self.num_clients
+
     def _init_server(self, cfg):
         trust_df = read_dataframe_from_cfg(cfg, "train_directories", "trust_df")
         _, trust_df = get_stratified_subsample(
@@ -73,11 +74,11 @@ class PPBC(FedAvg):
         self.num_clients = cfg.federated_params.amount_of_clients
         self.epoch_prev_trust_scores = [1 / self.num_clients] * self.num_clients
         self.iter_prev_trust_scores = [1 / self.num_clients] * self.num_clients
-        
-    #=========================================================================#
+
+    # =========================================================================#
     #                           SCAFFOLD Utilities                            #
-    #=========================================================================#
-    
+    # =========================================================================#
+
     def get_scaffold_aggregation(self):
         aggregated_weights = self.server.global_model.state_dict()
         sum_grad = OrderedDict()
@@ -86,33 +87,31 @@ class PPBC(FedAvg):
         for idx, gradient in enumerate(self.server.client_gradients):
             client_politic = self.iter_compress_politic[idx]
             for key, value in gradient.items():
-                sum_grad[key] += client_politic * value 
-        
-        coef = self.global_lr * (1/sum(self.iter_compress_politic)) 
+                sum_grad[key] += client_politic * value
+
+        coef = self.global_lr * (1 / sum(self.iter_compress_politic))
         for key, _ in aggregated_weights.items():
-            aggregated_weights[key] = aggregated_weights[key] + coef * sum_grad[key]   
+            aggregated_weights[key] = aggregated_weights[key] + coef * sum_grad[key]
         self._update_global_control()
-        return aggregated_weights     
-            
-            
+        return aggregated_weights
+
     def _init_client_cls(self):
-        if self.method == 'scaffold':
+        if self.method == "scaffold":
             self.client_cls = ScaffoldClient
             self.client_args = [self.cfg, self.df, self.local_lr]
             self.client_kwargs = {
-            "client_cls": self.client_cls,
-            "pipe": None,
-            "rank": None,
-        }
+                "client_cls": self.client_cls,
+                "pipe": None,
+                "rank": None,
+            }
         else:
             super()._init_client_cls()
-            
+
     def _init_controls(self):
         self.global_control = {}
 
         with torch.no_grad():
             for k, v in self.server.global_model.named_parameters():
-                
                 self.global_control[k] = torch.randn_like(v) * 1e-5
 
         self.clients_control = [
@@ -122,13 +121,13 @@ class PPBC(FedAvg):
         self.clients_delta_control = [
             copy.deepcopy(self.global_control) for _ in range(self.num_clients)
         ]
-        
+
     def get_communication_content(self, rank):
         # In scaffold we need additionaly send global controls to clients
         # and their own local controls
 
         content = super().get_communication_content(rank)
-        if self.method == 'scaffold':
+        if self.method == "scaffold":
             content["controls"] = (self.global_control, self.clients_control[rank])
 
         return content
@@ -138,12 +137,14 @@ class PPBC(FedAvg):
         # and additionaly receive delta_control (c_plus - local_c)
 
         super().parse_communication_content(client_result)
-        if self.method == 'scaffold':
+        if self.method == "scaffold":
             self.clients_delta_control[client_result["rank"]] = client_result[
                 "delta_control"
             ]
-            self.clients_control[client_result["rank"]] = client_result["client_control"]
-            
+            self.clients_control[client_result["rank"]] = client_result[
+                "client_control"
+            ]
+
     def _update_global_control(self):
         for k in self.global_control.keys():
             add_factor = torch.sum(
@@ -152,17 +153,19 @@ class PPBC(FedAvg):
             )
 
             # self.global_control[k] = self.global_control[k] + (
-            #     add_factor / self.cfg.federated_params.amount_of_clients 
+            #     add_factor / self.cfg.federated_params.amount_of_clients
             # )
             self.clients_delta_control = [
-    OrderedDict((k, torch.zeros_like(v)) for k, v in self.global_control.items())
-    for _ in range(self.num_clients)
-]
+                OrderedDict(
+                    (k, torch.zeros_like(v)) for k, v in self.global_control.items()
+                )
+                for _ in range(self.num_clients)
+            ]
 
-    #=========================================================================#
+    # =========================================================================#
     #                    Trust Score Calculation Utilities                    #
-    #=========================================================================#
-    
+    # =========================================================================#
+
     def get_scores_from_gradients(self):
         prev_trust_scores = [0] * self.num_clients
         for rank in range(self.num_clients):
@@ -200,7 +203,7 @@ class PPBC(FedAvg):
         prev_trust_scores = [metrics[1] for metrics in client_results]
 
         return prev_trust_scores
-    
+
     def get_score_from_anglse(self):
         prev_trust_scores = [0] * self.num_clients
         avg_grad = self.get_avg_grad()
@@ -213,9 +216,10 @@ class PPBC(FedAvg):
                 idx += 1
             prev_trust_scores[i] = torch.mean(sc_prod)
         return prev_trust_scores
-    #=========================================================================#
+
+    # =========================================================================#
     #               Trust Score Dispatch: Epoch vs. Iteration                 #
-    #=========================================================================#
+    # =========================================================================#
 
     def _epoch_count_trust_score(self):
         if "bant" in self.epoch_method:
@@ -250,10 +254,10 @@ class PPBC(FedAvg):
 
         else:
             print(f"{self.iter_method} method does not requires trust scores")
-    
-    #=========================================================================#
+
+    # =========================================================================#
     #                       Some additional functionality                     #
-    #=========================================================================#
+    # =========================================================================#
 
     def get_avg_grad(self):
         avg_grad = OrderedDict(
@@ -276,9 +280,9 @@ class PPBC(FedAvg):
         self.probs = bernoulli_dist.sample((self.num_clients,))
         print(f"now we have selected clients: {self.probs}")
 
-    #=========================================================================#
+    # =========================================================================#
     #                           Compressor Utilities                          #
-    #=========================================================================#
+    # =========================================================================#
     def random_compressor(self, mode="epoch"):
         if mode == "epoch":
             clients = np.arange(self.num_clients)
@@ -305,9 +309,9 @@ class PPBC(FedAvg):
 
             self.iter_compress_politic = torch.zeros_like(self.epoch_compress_politic)
             for i in range(self.iter_k):
-                self.iter_compress_politic[nonzero_ranks[i]] = (
-                    self.epoch_compress_politic[nonzero_ranks[i]]
-                )
+                self.iter_compress_politic[
+                    nonzero_ranks[i]
+                ] = self.epoch_compress_politic[nonzero_ranks[i]]
             print(
                 nonzero_ranks,
                 self.iter_compress_politic,
@@ -322,9 +326,9 @@ class PPBC(FedAvg):
 
             self.epoch_compress_politic = torch.zeros_like(self.current_politic)
             for rank in range(self.epoch_k):
-                self.epoch_compress_politic[idx_of_k_clients[rank]] = (
-                    self.current_politic[idx_of_k_clients[rank]]
-                )
+                self.epoch_compress_politic[
+                    idx_of_k_clients[rank]
+                ] = self.current_politic[idx_of_k_clients[rank]]
 
             print(
                 self.epoch_prev_trust_scores,
@@ -341,9 +345,9 @@ class PPBC(FedAvg):
 
             self.iter_compress_politic = torch.zeros_like(self.epoch_compress_politic)
             for rank in range(self.iter_k):
-                self.iter_compress_politic[best_epoch_results[rank]] = (
-                    self.epoch_compress_politic[best_epoch_results[rank]]
-                )
+                self.iter_compress_politic[
+                    best_epoch_results[rank]
+                ] = self.epoch_compress_politic[best_epoch_results[rank]]
 
             print(
                 self.iter_prev_trust_scores,
@@ -363,10 +367,10 @@ class PPBC(FedAvg):
             self.random_compressor(mode="iter")
         else:
             self.trust_score_compressor(mode="iter")
-            
-    #=========================================================================#
+
+    # =========================================================================#
     #                       Main algorithm functionality                      #
-    #=========================================================================#
+    # =========================================================================#
 
     def get_init_point(self):
         aggregated_weights = self.server.global_model.state_dict()
@@ -432,20 +436,20 @@ class PPBC(FedAvg):
                 )
             if self.need_errors:
                 if itn == self.iterations - 1:
-                    self.final_errors[f"client {rank}"] = (
-                        self.current_errors_from_clients[f"client {rank}"]
-                    )
+                    self.final_errors[
+                        f"client {rank}"
+                    ] = self.current_errors_from_clients[f"client {rank}"]
                     print("final errors saved!")
         return aggregated_weights
-    
+
     def init_errors(self):
         if self.cur_round != 0:
             self.epoch_compressor()
             for rank in range(self.num_clients):
                 for key, _ in self.server.global_model.state_dict().items():
-                    self.current_errors_from_clients[f"client {rank}"][key] = (
-                        torch.zeros_like(_).to(self.server.device)
-                    )
+                    self.current_errors_from_clients[f"client {rank}"][
+                        key
+                    ] = torch.zeros_like(_).to(self.server.device)
             return
         else:
             self.current_politic = (
@@ -454,9 +458,9 @@ class PPBC(FedAvg):
             self.epoch_compressor()
             for rank in range(self.num_clients):
                 for key, _ in self.server.global_model.state_dict().items():
-                    self.current_errors_from_clients[f"client {rank}"][key] = (
-                        torch.zeros_like(_).to(self.server.device)
-                    )
+                    self.current_errors_from_clients[f"client {rank}"][
+                        key
+                    ] = torch.zeros_like(_).to(self.server.device)
                     self.final_errors[f"client {rank}"][key] = torch.zeros_like(_).to(
                         self.server.device
                     )
@@ -474,20 +478,20 @@ class PPBC(FedAvg):
             self.iter_compressor()
             print(f"start the {itn} iteration")
             super().train_round()
-            if self.method == 'scaffold':
+            if self.method == "scaffold":
                 aggregated_weights = self.get_scaffold_aggregation()
             else:
-                aggregated_weights = self.get_errors_on_iter(itn) 
+                aggregated_weights = self.get_errors_on_iter(itn)
 
             self._iter_count_trust_score()
-            
-            if (itn == self.iterations - 1) and ('bant' in self.epoch_method):
-                self._epoch_count_trust_score()         
+
+            if (itn == self.iterations - 1) and ("bant" in self.epoch_method):
+                self._epoch_count_trust_score()
 
             self.server.global_model.load_state_dict(aggregated_weights)
 
             print("processing is done")
-        if 'bant' not in self.epoch_method:
+        if "bant" not in self.epoch_method:
             self._epoch_count_trust_score()
 
     def check_final_errors(self):
@@ -503,7 +507,7 @@ class PPBC(FedAvg):
         self.create_clients()
         self.clients_loader = self.manager.batches
         self.server.global_model = get_model(self.cfg)
-        if self.method == 'scaffold':
+        if self.method == "scaffold":
             self._init_controls()
 
         for round in range(self.rounds):

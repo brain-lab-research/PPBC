@@ -30,7 +30,6 @@ def handle_client_process_sigterm(signum, frame, rank):
 
 
 def create_model_info(model_state, metrics, checkpoint_path, cfg):
-
     model_info = {
         "model": model_state,
         "metrics": {"metrics": metrics[0], "threshold": metrics[1]},
