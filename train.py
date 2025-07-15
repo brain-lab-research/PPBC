@@ -18,7 +18,7 @@ print = partial(print, flush=True)
 def train(cfg: DictConfig):
     redirect_stdout_to_log()
     cfg = set_up_base_dir(cfg)
-    df = prepare_df_for_federated_training(cfg, "train_directories")
+    df, cfg = prepare_df_for_federated_training(cfg, "train_directories")
     # Needed params for multiprocessing
     os.environ["MASTER_ADDR"] = "127.0.0.1"
     os.environ["MASTER_PORT"] = str(random.randint(30000, 60000))
@@ -30,6 +30,7 @@ def train(cfg: DictConfig):
         signal.SIGTERM,
         lambda signum, frame: handle_main_process_sigterm(signum, frame, trainer),
     )
+    print("start federfated")
     trainer.begin_train()
 
 

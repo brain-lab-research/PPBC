@@ -13,45 +13,47 @@ from utils.data_utils import get_dataset_loader
 from utils.metrics_utils import calculate_metrics
 from utils.utils import handle_client_process_sigterm
 
+
 class Client:
     def __init__(self, *client_args, **client_kwargs):
         self.client_args = client_args
         self.client_kwargs = client_kwargs
-        
+
         cfg = self.client_args[0]
         df = self.client_args[1]
-        
+        # print('first of df tuple ',df[0], 'len is ' , len(df), 'second is ', df[1] ,  flush=True)
         self.cfg = cfg
         self.df = df
         self.train_df = df
-        
+        # print(self.df, flush=True)
         self.rank = client_kwargs["rank"]
         self.pipe = client_kwargs["pipe"]
-        
+
         self.valid_df = None
         self.train_loader = None
         self.valid_loader = None
         self.criterion = None
         self.server_model_state = None
-        
+
         self.metrics_threshold = cfg.training_params.metrics_threshold
         self.print_metrics = cfg.federated_params.print_client_metrics
         self.train_val_prop = cfg.federated_params.client_train_val_prop
+        dev_idx = (self.rank+1) % len(self.cfg.training_params.device_ids) 
         self.device = (
             "{}:{}".format(
-                cfg.training_params.device, cfg.training_params.device_ids[0]
+                cfg.training_params.device, cfg.training_params.device_ids[dev_idx-1]
             )
             if cfg.training_params.device == "cuda"
             else "cpu"
         )
         self.model = get_model(cfg)
         self.model.to(self.device)
-        
+
         self._set_train_df()
         self._init_loaders()
         self._init_optimizer()
         self._init_criterion()
-        
+
         self.pipe_commands_map = self.create_pipe_commands()
 
         self.grad = OrderedDict()
@@ -67,6 +69,7 @@ class Client:
         )
 
     def _set_train_df(self):
+        # print(f'type of df is {type(self.df)}', flush=True)
         self.train_df = self.df[self.df["client"] == self.rank]
 
     def _init_loaders(self):
@@ -112,13 +115,12 @@ class Client:
 
                 inp = input[0].to(self.device)
                 targets = targets.to(self.device)
-                
-                    
+
                 self.optimizer.zero_grad()
                 outputs = self.model(inp)
 
                 loss = self.get_loss_value(outputs, targets)
-                    
+
                 loss.backward()
 
                 self.optimizer.step()
@@ -134,18 +136,18 @@ class Client:
         val_loss = 0
         fin_targets = []
         fin_outputs = []
-        
+
         with torch.no_grad():
             for _, batch in enumerate(self.valid_loader):
                 _, (input, targets) = batch
 
                 inp = input[0].to(self.device)
                 targets = targets.to(self.device)
-                
+
                 outputs = self.model(inp)
-                
+
                 val_loss += self.criterion(outputs, targets).detach().item()
-                    
+
                 fin_targets.extend(targets.tolist())
                 fin_outputs.extend(outputs.tolist())
 
@@ -155,9 +157,6 @@ class Client:
         client_metrics, _ = calculate_metrics(
             fin_targets,
             fin_outputs,
-            self.metrics_threshold,
-            self.pathology_names,
-            self.cfg.dataset.data_sources.train_directories[0],
             self.cfg.training_params.prediction_threshold,
         )
 
@@ -173,21 +172,21 @@ class Client:
     def train(self):
         # Save the server model state to get_grad
         self.server_model_state = copy.deepcopy(self.model).state_dict()
-        
+
         # Validate server weights before training to set up best model
         start = time.time()
         self.server_val_loss, self.server_metrics = self.eval_fn()
-        
+
         # Train client
         self.train_fn()
-        
+
         # Get client metrics
         if self.print_metrics:
             self.client_val_loss, self.client_metrics = self.eval_fn()
-            
+
         # For now grad is the diff between trained model and server state
         self.get_grad()
-        
+
         # Save training time
         self.result_time = time.time() - start
 

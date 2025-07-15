@@ -1,0 +1,4 @@
+data_name: food101_hetero
+data_sources:
+  test_directories: /home/valetov/EF25_NIPS/food101/image_data/food101_test_map_file.csv
+  train_directories: /home/valetov/EF25_NIPS/food101/image_data/food101_hetero_map_file.csv

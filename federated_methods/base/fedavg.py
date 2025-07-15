@@ -7,6 +7,7 @@ from utils.manager_utils import Manager
 
 from utils.model_utils import get_model
 
+
 class FedAvg:
     def __init__(self):
         self.server = None
@@ -18,8 +19,9 @@ class FedAvg:
     def _init_federated(self, cfg, df):
         self.cfg = cfg
         self.df = df
-        
+        # print(print(f'type of df is {type(self.df)} in init federated', flush=True))
         # Initialize the server, and client's base
+        self.rounds = self.cfg.federated_params.communication_rounds
         self._init_server(cfg)
         self._init_client_cls()
         self._init_manager()
@@ -79,7 +81,7 @@ class FedAvg:
         # In fedavg we recive result_dict from every client
         self.server.set_client_result(client_result)
         print(f"Client {client_result['rank']} finished in {client_result['time']}")
-        
+
         if self.cfg.federated_params.print_client_metrics:
             # client_result['client_metrics'] = (loss, metrics)
             client_loss, client_metrics = (
@@ -121,7 +123,7 @@ class FedAvg:
         self.clients_loader = self.manager.batches
 
         self.server.global_model = get_model(self.cfg)
-        
+
         for round in range(self.rounds):
             print(f"\nRound number: {round}")
             begin_round_time = time.time()

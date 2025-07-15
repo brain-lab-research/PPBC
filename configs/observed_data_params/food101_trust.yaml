@@ -1,0 +1,3 @@
+data_name: food101
+data_sources:
+  train_directories: /home/valetov/EF25_NIPS/food101/image_data/food101_trust_map_file.csv

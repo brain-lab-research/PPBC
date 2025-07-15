@@ -1,2 +1,2 @@
-_target_: utils.cifar_utils.resnet18
+_target_: utils.model_utils.resnet18
 num_classes: 10

@@ -7,13 +7,13 @@ from hydra.utils import instantiate
 
 from utils.utils import create_model_info
 from utils.losses import get_loss
-from utils.model_utils import get_model
 from utils.data_utils import read_dataframe_from_cfg, get_dataset_loader
 from utils.metrics_utils import (
     calculate_metrics,
     stopping_criterion,
     check_metrics_names,
 )
+
 
 class Server:
     def __init__(self, cfg):
@@ -35,6 +35,7 @@ class Server:
             if cfg.training_params.device == "cuda"
             else "cpu"
         )
+        print(f'server has device {self.device}', flush=True)
         self.model_path = self.create_model_path()
         self.best_metrics = {
             metric: 1000 * (metric == "loss")
@@ -53,7 +54,7 @@ class Server:
     def eval_fn(self, dataset):
         self.global_model.to(self.device)
         self.global_model.eval()
-        
+
         self.criterion = get_loss(
             loss_cfg=self.cfg.loss,
             device=self.device,
@@ -69,40 +70,37 @@ class Server:
                 _, (input, targets) = batch
 
                 inp = input[0].to(self.device)
-                
+
                 targets = targets.to(self.device)
                 outputs = self.global_model(inp)
-                
+
                 loss += self.criterion(outputs, targets)
-                
+
                 fin_targets.extend(targets.tolist())
                 fin_outputs.extend(outputs.tolist())
-        
+
         loss /= len(getattr(self, f"{dataset}_loader"))
         setattr(self, f"{dataset}_loss", loss)
-        
+
         return fin_targets, fin_outputs
 
     def test_global_model(self, dataset="test", require_metrics=True):
         fin_targets, fin_outputs = self.eval_fn(dataset)
-        
+
         if require_metrics:
             print(f"\nServer {dataset.capitalize()} Results:")
 
             metrics, threshold = calculate_metrics(
                 fin_targets,
                 fin_outputs,
-                self.cfg.training_params.metrics_threshold,
-                self.target_label_names,
-                self.cfg.dataset.data_sources.train_directories[0],
                 prediction_threshold=(
                     None if dataset == "trust" else self.last_trust_metrics[1]
                 ),
                 verbose=True,
             )
-            
+
             setattr(self, f"last_{dataset}_metrics", (metrics, threshold))
-            
+
         print(f"Server {dataset.capitalize()} Loss: {getattr(self, dataset+'_loss')}")
 
     def set_client_result(self, client_result):
@@ -114,20 +112,20 @@ class Server:
         # Collect metrics from clients
         # server_metrics = (metrics, val_loss, len(val_df))
         server_metrics = [metrics[0] for metrics in self.server_metrics]
-        
+
         val_losses = [metrics[1] for metrics in self.server_metrics]
-        
+
         val_len_dfs = [metrics[2] for metrics in self.server_metrics]
-        
+
         weights = [val_len_df / sum(val_len_dfs) for val_len_df in val_len_dfs]
-        
+
         metrics_names = server_metrics[0].index
 
         if self.metric_aggregation == "uniform":
             # Uniform metrics agregation
             val_loss = np.mean(val_losses)
             metrics = pd.concat(server_metrics).groupby(level=0).mean()
-            
+
         if self.metric_aggregation == "weighted":
             # Weighted metrics aggregation
             val_loss = np.sum(
@@ -136,7 +134,7 @@ class Server:
             metrics = sum(
                 weight * metric for weight, metric in zip(weights, server_metrics)
             )
-            
+
         metrics = metrics.reindex(metrics_names)
         print(f"\nServer Valid Results:\n{metrics}")
         print(f"Server Valid Loss: {val_loss}")
@@ -146,16 +144,16 @@ class Server:
         )
         if epochs_no_improve == 0 and val_loss is not np.nan:
             print("\nServer model saved!")
-            
+
             prev_model_path = f"{self.model_path}_round_{self.best_round}.pt"
             if os.path.exists(prev_model_path):
                 os.remove(prev_model_path)
-                
+
             self.best_metrics = best_metrics
             self.best_round = round
-            
+
             checkpoint_path = f"{self.model_path}_round_{self.best_round}.pt"
-            
+
             model_info = create_model_info(
                 model_state=self.global_model.state_dict(),
                 metrics=self.last_test_metrics,
@@ -173,7 +171,7 @@ class Server:
         return metrics
 
     def create_model_path(self):
-        
+
         self.target_label_names = [self.cfg.dataset.data_name]
 
         return f"{self.cfg.single_run_dir}/{type(instantiate(self.cfg.federated_method, _recursive_=False)).__name__}_{'_'.join(self.target_label_names)}"

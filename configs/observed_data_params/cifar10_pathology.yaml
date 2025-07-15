@@ -1,0 +1,8 @@
+data_name: cifar10_pathology
+data_sources:
+  test_directories:
+  - /home/valetov/EF25_NIPS/cifar10/image_data/cifar10_test_map_file.csv
+  train_directories:
+  - /home/valetov/EF25_NIPS/cifar10/image_data/cifar10_pathology_map_file.csv
+distribution_info:
+- /home/valetov/EF25_NIPS/cifar10/image_data/pathology_additional_info.npy

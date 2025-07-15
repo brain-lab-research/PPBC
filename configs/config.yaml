@@ -1,9 +1,9 @@
 defaults:
-    - models@models_dict.model1: resnet1d18
+    - models@models_dict.model1: resnet18
     - observed_data_params@dataset: cifar10
     - observed_data_params@server_test: cifar10
     - observed_data_params@trust_df: cifar10_trust
-    - federated_method: fedavg
+    - federated_method: ppbc
     - losses@loss: ce
     - manager: sequential
     - optimizer: adam
@@ -13,30 +13,24 @@ models: ${oc.dict.values:models_dict}
 models_combination: single
 random_state: 42
 single_run_dir: ${hydra:run.dir}
+base_dir: home
 
 training_params:
-    epochs: 200
     batch_size: 256
     num_workers: 4
-    lr: 0.003
-    early_stopping_patience: 10
-    scheduler_patience: 3
     device: "cuda"
-    device_ids: ['0']
+    device_ids: ['1', '3']
     prediction_threshold: 0.5
     metrics_threshold: "gmean"
     factor: 0.8
     saving_metrics: ["loss"]
-    pretrained: False
-    num_freezes_layers: 0
 
 federated_params:
-    amount_of_clients: 5
-    client_sample: 1
+    amount_of_clients: 10
     min_sample_number: 1000
-    communication_rounds: 150
+    communication_rounds: 100
     round_epochs: 1
     client_train_val_prop: 0.2
-    print_client_metrics: True
+    print_client_metrics: False
     server_saving_metrics: ["loss"] # "loss", "Specificity", "Sensitivity", "G-mean", "f1-score", "fbeta2-score", "ROC-AUC", "AP", "Precision (PPV)", "NPV"
     server_saving_agg: "uniform" # weighted

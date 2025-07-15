@@ -28,21 +28,21 @@ class TSMomentumServer(Server):
         self.client_model.to(self.device)
         self.client_model.eval()
         self._init_criterion()
-        
+
         loss = 0
         with torch.no_grad():
             for _, batch in enumerate(self.trust_loader):
                 _, (input, targets) = batch
-                
+
                 inp = input[0].to(self.device)
-                
+
                 targets = targets.to(self.device)
                 outputs = self.client_model(inp)
-                
+
                 loss += self.criterion(outputs, targets)
 
         self.client_model.to("cpu")
-        
+
         loss /= len(self.trust_loader) + int(
             bool(len(self.trust_df) % len(self.trust_loader))
         )
@@ -58,10 +58,10 @@ class TSMomentumServer(Server):
     def get_trust_losses(self):
         trust_losses = []
         server_loss = self.eval_trust_fn(self.global_model.state_dict())
-        print(f"Server trust loss: {server_loss}\n", flush = True)
+        print(f"Server trust loss: {server_loss}\n", flush=True)
         for i, client_gradients in enumerate(self.client_gradients):
             client_weights = self.get_client_weights(client_gradients)
             client_loss = self.eval_trust_fn(client_weights)
-            print(f"Client {i} trust loss: {client_loss}",flush = True)
+            print(f"Client {i} trust loss: {client_loss}", flush=True)
             trust_losses.append(client_loss)
         return server_loss, trust_losses
