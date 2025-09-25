@@ -12,3 +12,5 @@ fastervit
 datasets
 transformers
 peft
+timm
+tabulate

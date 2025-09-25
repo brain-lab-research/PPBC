@@ -3,3 +3,6 @@ outputs/
 food101/
 *.out
 *.ipynb
+__pycache__/
+.gitignore
+.vscode/

@@ -1,7 +1,7 @@
-# PPBC_NIPS  
+# PPBC_ICLR  
 **Experimental Setup for the Paper**
 
-This repository includes all experiments and implementations required for the PPBC_NIPS study.
+This repository includes all experiments and implementations required for the PPBC_ICLR study.
 
 ---
 
@@ -9,8 +9,8 @@ This repository includes all experiments and implementations required for the PP
 
 - **Model**: ResNet-18  
 - **Dataset**: CIFAR-10  
-- **Client Configurations**: Experiments conducted with both 10 and 100 clients  
-- **Additional Model Support**: Swin Transformer with the ImageNet and Food101 dataset  
+- **Client Configurations**: Experiments conducted with 10  
+- **Additional Model Support**: FasterVIT with the Food101 dataset  
 
 ---
 
@@ -37,19 +37,5 @@ This repository includes all experiments and implementations required for the PP
 ## ✅ Command to Launch Experiments
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 taskset -c 1-34 nice -n 2 nohup python train.py \
-    base_dir=home \
-    models@models_dict.model1=resnet18 \
-    federated_method=ef_full \
-    observed_data_params@dataset=cifar10 \
-    observed_data_params@trust_df=cifar10_trust \
-    observed_data_params@filter=filter_dataframe_files \
-    observed_data_params@server_test=cifar10 \
-    losses@loss=ce \
-    federated_params.round_epochs=1 \
-    federated_params.amount_of_clients=10 \
-    training_params.batch_size=16 \
-    training_params.device_ids=[1] \
-    federated_method.trust_sample_amount=1500 \
-    federated_params.print_client_metrics=False \
-    > outputs/efgrad_3of10_patol_3its_0.2theta.txt &
+    python utils/cifar_download.py
+    python train.py
