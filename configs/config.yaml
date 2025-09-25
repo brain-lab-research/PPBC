@@ -32,5 +32,5 @@ federated_params:
     round_epochs: 1
     client_train_val_prop: 0.2
     print_client_metrics: False
-    server_saving_metrics: ["loss"] # "loss", "Specificity", "Sensitivity", "G-mean", "f1-score", "fbeta2-score", "ROC-AUC", "AP", "Precision (PPV)", "NPV"
-    server_saving_agg: "uniform" # weighted
+    server_saving_metrics: ["loss"]
+    server_saving_agg: "uniform"
