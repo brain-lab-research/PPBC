@@ -1,8 +1,7 @@
 data_name: food101_pathology
 data_sources:
-  test_directories: 
-  - null
-  train_directories: 
-  - null
-distribution_info: 
- - null
+  test_directories:
+  - /home/aletovv/EF25_NIPS/food101/image_data/food101_test_map_file.csv
+  train_directories:
+  - /home/aletovv/EF25_NIPS/food101/image_data/food101_pathology_map_file.csv
+distribution_info: /home/aletovv/EF25_NIPS/food101/image_data/pathology_additional_info.npy

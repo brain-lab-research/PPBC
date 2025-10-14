@@ -43,8 +43,9 @@ class PPBC(FedAvg):
 
         # Scaffold method
         if self.method == "scaffold":
-            self.global_lr = method_args.get("global_lr", 1e-4)
-            self.local_lr = method_args.get("local_lr", 1e-4)
+            print('using scaffold method')
+            self.global_lr = method_args.get("global_lr", 3e-4)
+            self.local_lr = method_args.get("local_lr", 3e-4)
 
     def _init_federated(self, cfg, df):
         super()._init_federated(cfg, df)
@@ -83,11 +84,12 @@ class PPBC(FedAvg):
         aggregated_weights = self.server.global_model.state_dict()
         sum_grad = OrderedDict()
         for key, value in self.server.client_gradients[0].items():
-            sum_grad[key] = torch.zeros_like(value)
+            sum_grad[key] = torch.zeros(value.shape, device = self.server.device)
         for idx, gradient in enumerate(self.server.client_gradients):
             client_politic = self.iter_compress_politic[idx]
             for key, value in gradient.items():
-                sum_grad[key] += client_politic * value
+                # print(sum_grad[key], type(client_politic), value.device)
+                sum_grad[key] += client_politic * value.to(self.server.device)
 
         coef = self.global_lr * (1 / sum(self.iter_compress_politic))
         for key, _ in aggregated_weights.items():
