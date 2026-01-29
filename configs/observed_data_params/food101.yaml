@@ -1,6 +1,6 @@
 data_name: food101
 data_sources:
   test_directories:
-  - /home/aletovv/EF25_NIPS/food101/image_data/food101_test_map_file.csv
+  - null
   train_directories:
-  - /home/aletovv/EF25_NIPS/food101/image_data/food101_train_map_file.csv
+  - null
