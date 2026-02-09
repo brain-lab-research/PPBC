@@ -39,6 +39,7 @@ This repository includes all experiments and implementations required for the PP
 ```bash
     python utils/cifar_download.py
     python train.py
+```
 
 ## Citation
 @misc{partialparticipation,
