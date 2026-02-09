@@ -1,4 +1,4 @@
-# PPBC_ICML
+# Code for work A Robust Training Method for Federated Learning with Partial Participation
 **Experimental Setup for the Paper**
 
 This repository includes all experiments and implementations required for the PPBC_ICML study.
@@ -39,3 +39,12 @@ This repository includes all experiments and implementations required for the PP
 ```bash
     python utils/cifar_download.py
     python train.py
+
+## Citation
+@misc{partialparticipation,
+  title={A Robust Training Method for Federated Learning with Partial Participation},
+  author={D. Bylinkin et.al},
+  year={2025},
+  howpublished = "[Online]. Available: \url{ГИТ}"
+}
+    
