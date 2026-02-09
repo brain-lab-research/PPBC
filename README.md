@@ -42,9 +42,10 @@ This repository includes all experiments and implementations required for the PP
 ```
 
 ## Citation
+```
 @misc{partialparticipation,
   title={A Robust Training Method for Federated Learning with Partial Participation},
-  author={D. Bylinkin et.al},
+  author={Dmitry Bylinkin and Daniil Medyakov and Vladimir Aletov and Nail Bashirov and Aleksandr Beznosikov},
   year={2025},
   howpublished = "[Online]. Available: \url{ГИТ}"
 }
