@@ -1,0 +1,24 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: PPBC
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: Basic Research of Artificial Intelligence Laboratory
+    city: Moscow
+    country: RU
+    email: aletov.v@miriai.org
+    website: 'https://github.com/brain-lab-research'
+identifiers:
+  - type: url
+    value: 'https://openreview.net/forum?id=QP0mGwfv0G'
+keywords:
+  - Parial Participation
+  - Federated Learning
+license: MIT
+version: 1.0.0
+date-released: '2026-02-09'
