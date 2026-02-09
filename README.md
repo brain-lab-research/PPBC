@@ -47,6 +47,6 @@ This repository includes all experiments and implementations required for the PP
   title={A Robust Training Method for Federated Learning with Partial Participation},
   author={Dmitry Bylinkin and Daniil Medyakov and Vladimir Aletov and Nail Bashirov and Aleksandr Beznosikov},
   year={2025},
-  howpublished = "[Online]. Available: \url{ГИТ}"
+  howpublished = "[Online]. Available: \url{https://scholar.google.com/citations?view_op=view_citation&hl=ru&user=1hPG3aIAAAAJ&citation_for_view=1hPG3aIAAAAJ:KlAtU1dfN6UC}"
 }
     
